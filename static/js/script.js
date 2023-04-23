@@ -30,24 +30,22 @@ function toggleWithDelay(cell, delay, amplitude, duration) {
   }, delay);
 }
 
-function toggleSurroundingCells(x, y, numRows, numCols, delay) {
-  const amplitude = 0.5;
+function toggleSurroundingCells(x, y, numRows, numCols, baseDelay) {
+  const maxDistance = Math.max(numRows, numCols);
+  const maxAmplitude = 1;
+  const minAmplitude = 0.1;
   const duration = 1000;
-  const directions = [
-    [-1, -1], [-1, 0], [-1, 1],
-    [0, -1],           [0, 1],
-    [1, -1], [1, 0], [1, 1],
-  ];
 
-  directions.forEach(([dx, dy]) => {
-    const newX = x + dx;
-    const newY = y + dy;
-
-    if (newX >= 0 && newX < numRows && newY >= 0 && newY < numCols) {
-      const cell = table.rows[newX].cells[newY];
-      toggleWithDelay(cell, delay);
+  for (let i = 0; i < numRows; i++) {
+    for (let j = 0; j < numCols; j++) {
+      const distance = Math.sqrt(Math.pow(i - x, 2) + Math.pow(j - y, 2));
+      const delay = baseDelay * distance;
+      const amplitude = maxAmplitude - ((maxAmplitude - minAmplitude) * (distance / maxDistance));
+      
+      const cell = table.rows[i].cells[j];
+      toggleWithDelay(cell, delay, amplitude, duration);
     }
-  });
+  }
 }
 
 for (let i = 0; i < numRows; i++) {
