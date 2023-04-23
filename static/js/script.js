@@ -9,32 +9,42 @@ function dampedOscillation(t, C, zeta, omega0, alpha) {
 }
 
 function toggleWithDelay(cell, delay, amplitude, duration) {
+  if (cell.animating) {
+    return;
+  }
+
   const startTime = Date.now();
   const initialOpacity = cell.style.opacity || 1;
 
   function step() {
     const elapsed = Date.now() - startTime;
     const t = elapsed / duration;
-    const opacity = dampedOscillation(t, amplitude, 0.1, 10, 0);
-    cell.style.opacity = parseFloat(initialOpacity) + opacity;
+    const opacity = initialOpacity - dampedOscillation(t, amplitude, 0.1, 10, 0) * initialOpacity;
+    cell.style.opacity = opacity;
 
     if (elapsed < duration) {
       requestAnimationFrame(step);
     } else {
       cell.style.opacity = initialOpacity;
+      cell.animating = false;
     }
   }
 
   setTimeout(() => {
+    cell.animating = true;
     requestAnimationFrame(step);
   }, delay);
+
+  setTimeout(() => {
+    cell.animating = false;
+  }, delay + duration);
 }
 
 function toggleSurroundingCells(x, y, numRows, numCols, baseDelay) {
   const maxDistance = Math.max(numRows, numCols);
   const maxAmplitude = 1;
   const minAmplitude = 0.1;
-  const duration = 1000;
+  const duration = 3000;
 
   for (let i = 0; i < numRows; i++) {
     for (let j = 0; j < numCols; j++) {
