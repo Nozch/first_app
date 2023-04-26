@@ -1,12 +1,12 @@
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 1000);
 
-const renderer = new THREE.WebGLRenderer();
+const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-const geometry = new THREE.PlaneGeometry(24, 24, 23, 23);
-const material = new THREE.MeshBasicMaterial({color: 0xffffff, wireframe: true});
+const geometry = new THREE.PlaneGeometry(40, 40, 23, 23);
+const material = new THREE.MeshBasicMaterial({color: 0xffffff, wireframe: true, opacity: 0.5});
 const grid = new THREE.Mesh(geometry, material);
 scene.add(grid);
 
@@ -29,7 +29,7 @@ function onMouseClick(event) {
 
     const animateWave = () => {
       const waveElapsedTime = performance.now() - waveStartTime;
-      const waveSpeed = 0.15;
+      const waveSpeed = 0.01;
 
       const positionAttribute = geometry.attributes.position;
       
