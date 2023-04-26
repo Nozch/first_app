@@ -1,50 +1,75 @@
-// グリッドを生成する
-const grid = document.getElementById("grid");
-for (let i = 0; i < 24 * 24; i++) {
-  const cell = document.createElement("div");
-  cell.classList.add("cell");
-  cell.style.width = "20px"; // セルの幅を設定
-  cell.style.height = "20px";
-  grid.appendChild(cell);
-}
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
-// セルをクリックしたときの処理を追加する
-const cells = document.querySelectorAll(".cell");
-cells.forEach((cell) => {
-  cell.addEventListener("click", (e) => {
-    const target = e.currentTarget;
-    target.style.opacity = 1;
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
 
-    // 重ね合わせの波を表現するために、他のセルの透明度を変更する
-    const waveEffect = (cell, delay) => {
-      setTimeout(() => {
-        cell.style.opacity = 1;
-        setTimeout(() => {
-          cell.style.opacity = 0;
-        }, 300);
-      }, delay);
+const geometry = new THREE.PlaneGeometry(24, 24, 23, 23);
+const material = new THREE.MeshBasicMaterial({color: 0xffffff, wireframe: true});
+const grid = new THREE.Mesh(geometry, material);
+scene.add(grid);
+
+camera.position.set(0, 0, 50);
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
+function onMouseClick(event) {
+  event.preventDefault();
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+
+  const intersects = raycaster.intersectObjects(scene.children);
+
+  if (intersects.length > 0) {
+    const point = intersects[0].point;
+    const waveCenter = new THREE.Vector2(point.x, point.y);
+    const waveStartTime = performance.now();
+
+    const animateWave = () => {
+      const waveElapsedTime = performance.now() - waveStartTime;
+      const waveSpeed = 0.15;
+
+      const positionAttribute = geometry.attributes.position;
+      
+
+      for (let i = 0;  i < positionAttribute.count; i++) {
+        const vertex = new THREE.Vector3(
+          positionAttribute.getX(i),
+          positionAttribute.getY(i),
+          positionAttribute.getZ(i)
+        );
+
+        const distance = waveCenter.distanceTo(new THREE.Vector2(vertex.x, vertex.y));
+        const timeOffset = distance / waveSpeed;
+
+        if (waveElapsedTime > timeOffset) {
+          vertex.z = Math.sin((waveElapsedTime - timeOffset) / 300) * 2;  
+        }
+
+        positionAttribute.setXYZ(i, vertex.x, vertex.y, vertex.z);
+      }
+
+      
+
+      positionAttribute.needsUpdate = true;
+      renderer.render(scene, camera);
+
+      if (waveElapsedTime < 3000) {
+        requestAnimationFrame(animateWave);
+      }
     };
 
-    const index = Array.from(cells).indexOf(target);
-    const x = index % 24;
-    const y = Math.floor(index / 24);
+    animateWave();
+  }
+}
 
-    for (let i = 0; i < cells.length; i++) {
-      const cell = cells[i];
-      const cx = i % 24;
-      const cy = Math.floor(i / 24);
+window.addEventListener('click', onMouseClick, false);
 
-      const distance = Math.sqrt(Math.pow(cx - x, 2) + Math.pow(cy - y, 2));
+function animate() {
+  requestAnimationFrame(animate);
+  renderer.render(scene, camera);
+}
 
-      // 波の速度（セル/秒）
-      const waveSpeed = 5;
-
-      // セルに対して遅延を計算する
-      const delay = distance / waveSpeed * 1000;
-
-      // セルの透明度を変更する
-      waveEffect(cell, delay);
-    }
-  });
-});
-
+animate();
