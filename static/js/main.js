@@ -26,10 +26,15 @@ function onMouseClick(event) {
     const point = intersects[0].point;
     const waveCenter = new THREE.Vector2(point.x, point.y);
     const waveStartTime = performance.now();
-
+    
+    const wavePeriod = 50;
+    //smaller the wave thicker
+    const waveDuration = 7000;
+    
     const animateWave = () => {
       const waveElapsedTime = performance.now() - waveStartTime;
       const waveSpeed = 0.01;
+    //smaller the animation slower 
 
       const positionAttribute = geometry.attributes.position;
       
@@ -45,7 +50,7 @@ function onMouseClick(event) {
         const timeOffset = distance / waveSpeed;
 
         if (waveElapsedTime > timeOffset) {
-          vertex.z = Math.sin((waveElapsedTime - timeOffset) / 300) * 2;  
+          vertex.z = Math.sin((waveElapsedTime - timeOffset) / wavePeriod) * 2;  
         }
 
         positionAttribute.setXYZ(i, vertex.x, vertex.y, vertex.z);
@@ -56,11 +61,11 @@ function onMouseClick(event) {
       positionAttribute.needsUpdate = true;
       renderer.render(scene, camera);
 
-      if (waveElapsedTime < 3000) {
+      if (waveElapsedTime < waveDuration) {
         requestAnimationFrame(animateWave);
       }
     };
-
+    
     animateWave();
   }
 }
